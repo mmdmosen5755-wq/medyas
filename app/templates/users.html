@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>کاربران</h1>
+<form method="get" class="row" style="margin-bottom:12px">
+  <input name="q" value="{{ q }}" placeholder="جست‌وجو: آیدی / نام / یوزرنیم" style="width:260px"><button class="ghost">جست‌وجو</button>
+</form>
+<div class="card tbl">
+<table>
+  <tr><th>آیدی</th><th>نام</th><th>اشتراک تا</th><th>توکن</th><th>تمدید (روز)</th><th></th></tr>
+  {% for u in users %}
+  <tr>
+    <td dir="ltr">{{ u.id }}</td>
+    <td>{{ u.name }}<br><small dir="ltr">{% if u.username %}@{{ u.username }}{% endif %}</small></td>
+    <td>{% if u.expires_at and u.expires_at > now %}<span class="pill ok">{{ u.expires_at|jdate }}</span>
+        {% else %}<span class="pill bad">منقضی</span>{% endif %}
+        {% if u.banned %}<span class="pill bad">مسدود</span>{% endif %}</td>
+    <td>{{ 'بله' if u.eitaa_token_enc else '—' }}</td>
+    <td><form method="post" action="/users/{{ u.id }}/days" class="row">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="number" name="days" value="30"><button class="ok">اعمال</button></form></td>
+    <td><form method="post" action="/users/{{ u.id }}/ban"><input type="hidden" name="csrf" value="{{ csrf }}">
+      <button class="ghost">{{ 'آزاد' if u.banned else 'مسدود' }}</button></form></td>
+  </tr>
+  {% else %}<tr><td colspan="6"><small>کاربری پیدا نشد.</small></td></tr>{% endfor %}
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}ورود{% endblock %}
+{% block body %}
+<div class="card" style="max-width:360px;margin:96px auto">
+  <h1>ورود</h1>
+  {% if error %}<div class="flash err">{{ error }}</div>{% endif %}
+  <form method="post" action="/login">
+    <label>رمز عبور</label>
+    <input type="password" name="password" dir="ltr" autofocus required>
+    <p><button style="width:100%">ورود</button></p>
+  </form>
+</div>
+{% endblock %}

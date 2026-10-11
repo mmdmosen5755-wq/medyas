@@ -1,0 +1,8 @@
+{
+  "name": "medyas",
+  "private": true,
+  "type": "module",
+  "scripts": { "deploy": "wrangler deploy", "dev": "wrangler dev", "check": "tsc --noEmit" },
+  "dependencies": { "@cloudflare/containers": "latest" },
+  "devDependencies": { "@cloudflare/workers-types": "latest", "typescript": "^5", "wrangler": "^4" }
+}

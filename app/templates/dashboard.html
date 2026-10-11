@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>داشبورد</h1>
+<div class="card">
+  <div class="status">
+    <div>تلگرام
+      {% if bot.running %}<span class="pill ok">روشن · @{{ bot.username }}</span>{% else %}<span class="pill bad">خاموش</span>{% endif %}
+    </div>
+    <div>روبیکا
+      {% if rubika_set %}<span class="pill ok">متصل</span>{% else %}<span class="pill">غیرفعال</span>{% endif %}
+    </div>
+    <form method="post" action="/bot/restart" style="margin-inline-start:auto">
+      <input type="hidden" name="csrf" value="{{ csrf }}"><button class="ghost">راه‌اندازی مجدد</button>
+    </form>
+  </div>
+  {% if not token_set %}<p class="flash" style="margin:14px 0 0">توکن ربات تلگرام ثبت نشده؛ به <a href="/settings">تنظیمات</a> بروید.</p>
+  {% elif not admins %}<p class="flash" style="margin:14px 0 0">آیدی ادمین ثبت نشده؛ به <a href="/settings">تنظیمات</a> بروید.</p>
+  {% elif bot.error %}<p class="flash err" style="margin:14px 0 0">{{ bot.error }}</p>{% endif %}
+</div>
+<div class="grid" style="margin-bottom:16px">
+  <div class="stat"><span>کاربران</span><b>{{ stats.users }}</b></div>
+  <div class="stat"><span>اشتراک فعال</span><b>{{ stats.active }}</b></div>
+  <div class="stat"><span>در صف</span><b>{{ stats.pending }}</b></div>
+  <div class="stat"><span>ارسال موفق</span><b>{{ stats.sent }}</b></div>
+  <div class="stat"><span>ناموفق</span><b>{{ stats.failed }}</b></div>
+  <div class="stat"><span>رسید در انتظار</span><b>{{ stats.pays }}</b></div>
+  <div class="stat"><span>کانال‌های محتوا</span><b>{{ stats.srcs }}</b></div>
+  <div class="stat"><span>تخلف دستیار (۲۴ ساعت)</span><b>{{ stats.viol }}</b></div>
+</div>
+<div class="card tbl">
+  <h2 style="margin-bottom:10px">آخرین پست‌ها</h2>
+  <table>
+    <tr><th>#</th><th>کاربر</th><th>زمان</th><th>وضعیت</th><th>خطا</th></tr>
+    {% for p in recent %}
+    <tr><td>{{ p.id }}</td><td dir="ltr">{{ p.user_id }}</td><td>{{ p.run_at|jdate }}</td>
+      <td><span class="pill {{ 'ok' if p.status=='sent' else 'bad' if p.status=='failed' else 'warn' }}">{{ p.status }}</span></td>
+      <td><small>{{ p.error[:80] }}</small></td></tr>
+    {% else %}<tr><td colspan="5"><small>هنوز پستی نیست.</small></td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

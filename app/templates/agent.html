@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>دستیار هوشمند</h1>
+<div class="card">
+  <div class="status">
+    <div>هوش مصنوعی
+      {% if ai_ready %}<span class="pill ok">کلید ثبت شده · {{ ai_conf.provider }}</span>{% else %}<span class="pill bad">کلید ثبت نشده</span>{% endif %}
+    </div>
+    <div><small dir="ltr">{{ ai_conf.chat }} · {{ ai_conf.fast }}</small></div>
+    <form method="post" action="/agent/test" style="margin-inline-start:auto">
+      <input type="hidden" name="csrf" value="{{ csrf }}"><button class="ghost">تست اتصال</button>
+    </form>
+  </div>
+  {% if not ai_ready %}<p class="flash" style="margin:14px 0 0">برای فعال‌شدن دستیار، در <a href="/settings">تنظیمات</a> کلید API را ثبت کنید.</p>{% endif %}
+</div>
+<div class="grid" style="margin-bottom:16px">
+  <div class="stat"><span>حالت پیشنهادی</span><b>{{ modes.get('review', 0) }}</b></div>
+  <div class="stat"><span>حالت خودکار</span><b>{{ modes.get('auto', 0) }}</b></div>
+  <div class="stat"><span>پست منتشرشده (۷ روز)</span><b>{{ by_status.get('published', 0) }}</b></div>
+  <div class="stat"><span>رد شده (۷ روز)</span><b>{{ by_status.get('rejected', 0) }}</b></div>
+  <div class="stat"><span>مسدود به‌خاطر قوانین</span><b>{{ by_status.get('blocked', 0) }}</b></div>
+  <div class="stat"><span>توکن مصرفی (۷ روز)</span><b>{{ '{:,}'.format(tokens) }}</b></div>
+</div>
+{% if suspended %}
+<div class="card tbl"><h2 style="margin-bottom:10px">کاربران تعلیق‌شده</h2>
+  <table><tr><th>کاربر</th><th>تا</th><th></th></tr>
+  {% for p, u in suspended %}<tr><td dir="ltr">{{ u.id }} {{ u.name }}</td><td>{{ p.suspended_until|jdate }}</td>
+    <td><form method="post" action="/agent/suspend/{{ u.id }}"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="ghost">رفع تعلیق</button></form></td></tr>{% endfor %}
+  </table></div>
+{% endif %}
+<div class="card tbl">
+  <h2 style="margin-bottom:4px">گزارش تلاش‌های خلاف قوانین</h2>
+  <p class="sub">هر بار که دستیار چیزی را به‌خاطر قوانین شما رد کرده. (نوع «content» یعنی محتوای یک کانال مرجع مسدود شد، نه خطای کاربر.)</p>
+  <table>
+    <tr><th>زمان</th><th>کاربر</th><th>نوع</th><th>درخواست</th><th>قانون</th><th></th></tr>
+    {% for e, u in events %}
+    <tr><td>{{ e.created_at|jdate }}</td>
+      <td dir="ltr">{{ e.user_id }}{% if u %}<br><small>{{ u.name }}</small>{% endif %}</td>
+      <td><span class="pill {{ 'warn' if e.kind=='content' else 'bad' }}">{{ e.kind }}</span>{% if e.action %}<br><small>{{ e.action }}</small>{% endif %}</td>
+      <td><small>{{ e.request[:160] }}</small></td><td><small>{{ e.rule[:120] }}</small></td>
+      <td>{% if e.kind != 'content' %}<form method="post" action="/agent/suspend/{{ e.user_id }}"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="ghost">تعلیق/رفع</button></form>{% endif %}</td></tr>
+    {% else %}<tr><td colspan="6"><small>تا الان موردی ثبت نشده.</small></td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

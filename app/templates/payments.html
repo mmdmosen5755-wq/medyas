@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>پرداخت‌ها</h1>
+<div class="card tbl">
+<table>
+  <tr><th>#</th><th>کاربر</th><th>پلن</th><th>مبلغ (تومان)</th><th>رسید</th><th>وضعیت</th><th></th></tr>
+  {% for p, u in rows %}
+  <tr>
+    <td>{{ p.id }}</td><td>{{ u.name }}<br><small dir="ltr">{{ u.id }}</small></td>
+    <td>{{ p.days }} روز</td><td>{{ p.amount|money }}</td>
+    <td><small>{{ p.receipt_text or ('📷 عکس در تلگرام' if p.receipt_file_id else '') }}</small></td>
+    <td><span class="pill {{ 'ok' if p.status=='approved' else 'bad' if p.status=='rejected' else 'warn' }}">{{ p.status }}</span></td>
+    <td>{% if p.status=='pending' %}<div class="row">
+      <form method="post" action="/payments/{{ p.id }}/ok"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="ok">تأیید</button></form>
+      <form method="post" action="/payments/{{ p.id }}/no"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="bad">رد</button></form>
+    </div>{% endif %}</td>
+  </tr>
+  {% else %}<tr><td colspan="7"><small>پرداختی ثبت نشده.</small></td></tr>{% endfor %}
+</table>
+</div>
+{% endblock %}

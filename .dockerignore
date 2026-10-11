@@ -1,0 +1,9 @@
+.git
+.env
+tests
+node_modules
+src
+*.db
+__pycache__
+.pytest_cache
+wrangler.jsonc

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>تنظیمات</h1>
+<form method="post" action="/settings">
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<div class="card">
+  <h2>ربات تلگرام</h2>
+  <p class="sub">رابط کاربران؛ توکن را از @BotFather بگیرید.</p>
+  <label>توکن</label>
+  <input name="bot_token" dir="ltr" autocomplete="off" placeholder="{{ token_hint or '123456:ABC-DEF...' }}">
+  <small>{% if token_hint %}ذخیره شده ({{ token_hint }}) · خالی بگذارید تا تغییر نکند.{% else %}هنوز ثبت نشده.{% endif %}</small>
+  <label>آیدی عددی ادمین‌ها</label>
+  <input name="admin_ids" dir="ltr" value="{{ cfg.admin_ids }}" placeholder="123456789, 987654321" required>
+  <small>با /id در ربات بگیرید. ادمین‌ها اشتراک نامحدود دارند.</small>
+</div>
+<div class="card">
+  <h2>ربات روبیکا</h2>
+  <p class="sub">یک ربات برای همه‌ی کاربران. در روبیکا از @BotFather بسازید. کاربران فقط ربات را ادمین کانال می‌کنند و آیدی کانال را در ربات تلگرام می‌دهند. برای «اتصال با کد» (وقتی آیدی شناسایی نشود) گزینه‌ی «دریافت همه پیام‌های کانال و گروه» را هم در BotFather روبیکا فعال کنید.</p>
+  <label>توکن</label>
+  <input name="rubika_bot_token" dir="ltr" autocomplete="off" placeholder="{{ rb_hint or 'توکن ربات روبیکا' }}">
+  <small>{% if rb_hint %}ذخیره شده ({{ rb_hint }}) · خالی بگذارید تا تغییر نکند.{% else %}اگر خالی بماند، روبیکا برای کاربران غیرفعال است.{% endif %}</small>
+</div>
+<div class="card">
+  <h2>برند و متن‌ها</h2>
+  <label>نام برند</label><input name="brand_name" value="{{ cfg.brand_name }}">
+  <label>متن خوش‌آمدگویی</label><textarea name="welcome_text" rows="3">{{ cfg.welcome_text }}</textarea>
+  <label>یوزرنیم پشتیبانی (بدون @)</label><input name="support_username" dir="ltr" value="{{ cfg.support_username }}">
+</div>
+<div class="card">
+  <h2>فروش و اشتراک</h2>
+  <label>روزهای تست رایگان (۰ = بدون تست)</label>
+  <input name="trial_days" dir="ltr" value="{{ cfg.trial_days }}" required>
+  <label>پلن‌ها (هر خط: روز:قیمت به تومان)</label>
+  <textarea name="plans" dir="ltr" rows="4">{{ cfg.plans }}</textarea>
+  <label>شماره کارت</label><input name="card_number" dir="ltr" value="{{ cfg.card_number }}" placeholder="6037 9975 ...">
+  <label>نام صاحب کارت</label><input name="card_owner" value="{{ cfg.card_owner }}">
+  <small>کاربر رسید را در ربات می‌فرستد و شما از ربات یا همین پنل تأیید می‌کنید.</small>
+</div>
+<div class="card">
+  <h2>هوش مصنوعی و دستیار محتوا</h2>
+  <p class="sub">موتور «دستیار هوشمند» و بررسی خودکار کانال‌های محتوا. بعد از ذخیره، از صفحه‌ی «دستیار هوشمند» دکمه‌ی تست اتصال را بزنید.</p>
+  <label>ارائه‌دهنده</label>
+  <select name="ai_provider" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit">
+    <option value="anthropic" {{ 'selected' if cfg.ai_provider=='anthropic' }}>Anthropic (Claude)</option>
+    <option value="openai" {{ 'selected' if cfg.ai_provider=='openai' }}>سازگار با OpenAI (OpenAI، OpenRouter، ...)</option>
+  </select>
+  <label>کلید API</label>
+  <input name="ai_api_key" dir="ltr" autocomplete="off" placeholder="{{ ai_hint or 'sk-...' }}">
+  <small>{% if ai_hint %}ذخیره شده ({{ ai_hint }}) · خالی بگذارید تا تغییر نکند.{% else %}هنوز ثبت نشده؛ بدون آن دستیار خاموش است. (می‌توانید متغیر ANTHROPIC_API_KEY را در Railway بگذارید.){% endif %}</small>
+  <label>آدرس پایه (اختیاری)</label>
+  <input name="ai_base_url" dir="ltr" value="{{ cfg.ai_base_url }}" placeholder="خالی = آدرس پیش‌فرض ارائه‌دهنده">
+  <label>مدل گفتگو و بازنویسی (باهوش‌تر)</label>
+  <input name="ai_model_chat" dir="ltr" value="{{ cfg.ai_model_chat }}" placeholder="پیش‌فرض: {{ ai_defaults[cfg.ai_provider]['chat'] if cfg.ai_provider in ai_defaults else '' }}">
+  <label>مدل دسته‌بندی و بررسی قوانین (ارزان و سریع)</label>
+  <input name="ai_model_fast" dir="ltr" value="{{ cfg.ai_model_fast }}" placeholder="پیش‌فرض: {{ ai_defaults[cfg.ai_provider]['fast'] if cfg.ai_provider in ai_defaults else '' }}">
+</div>
+<div class="card">
+  <h2>قوانین مدیر برای دستیار</h2>
+  <p class="sub">این قوانین از هر چیزی که کاربر بگوید قوی‌ترند و در کد اعمال می‌شوند. اگر کاربر خلافشان را بخواهد، دستیار می‌گوید «نمی‌توانم» و موضوع را به شما گزارش می‌دهد (در ربات + صفحه‌ی «دستیار هوشمند»).</p>
+  <label><input type="checkbox" name="agent_enabled" value="1" style="width:auto" {{ 'checked' if cfg.agent_enabled=='1' }}> دستیار برای همه فعال باشد (کلید اضطراری)</label>
+  <label>قوانین به زبان ساده (هر خط یک قانون)</label>
+  <textarea name="agent_rules" rows="6" placeholder="هرگز محتوای سیاسی منتشر نکن&#10;هیچ پستی درباره‌ی قمار، شرط‌بندی یا فیلترشکن منتشر نکن&#10;ارسال لینک کانال‌های دیگر ممنوع است">{{ cfg.agent_rules }}</textarea>
+  <label>کلمات ممنوعه (هر خط یا با کاما؛ بدون هوش مصنوعی و فوری بررسی می‌شود)</label>
+  <textarea name="agent_blocked_words" rows="2">{{ cfg.agent_blocked_words }}</textarea>
+  <div class="row" style="margin-top:6px">
+    <div><label>پیام روزانه‌ی هر کاربر</label><input name="agent_max_msgs_day" dir="ltr" value="{{ cfg.agent_max_msgs_day }}"></div>
+    <div><label>پست خودکار روزانه (سقف سخت)</label><input name="agent_max_auto_day" dir="ltr" value="{{ cfg.agent_max_auto_day }}"></div>
+    <div><label>حداکثر کانال محتوا</label><input name="agent_max_sources" dir="ltr" value="{{ cfg.agent_max_sources }}"></div>
+    <div><label>تخلف تا تعلیق (۰ = هرگز)</label><input name="agent_violation_limit" dir="ltr" value="{{ cfg.agent_violation_limit }}"></div>
+  </div>
+  <label><input type="checkbox" name="agent_allow_auto" value="1" style="width:auto" {{ 'checked' if cfg.agent_allow_auto=='1' }}> کاربران بتوانند حالت «انتشار خودکار» را روشن کنند</label>
+  <label><input type="checkbox" name="agent_force_attr" value="1" style="width:auto" {{ 'checked' if cfg.agent_force_attr=='1' }}> ذکر منبع («منبع: @کانال») همیشه اجباری باشد</label>
+</div>
+<button>ذخیره</button>
+</form>
+{% endblock %}
